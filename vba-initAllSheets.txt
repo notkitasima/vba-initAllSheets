@@ -1,0 +1,98 @@
+Option Explicit
+
+'================================================================
+'Copyright <2019> <notkitasima@gmail.com>
+
+'Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+'The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+'THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+'================================================================
+Sub aa0010_全シート表示初期化()
+    
+    '変数宣言
+    Dim Ws As Worksheet
+    Dim zoomParamStr As String
+    Dim zoomParamInt As Integer
+    'デバッグ用変数
+    Dim startTime As Double
+    Dim endTime As Double
+    Dim processTime As Double
+    
+    '開始時間取得
+    startTime = Timer
+    
+    'インプットボックス入力受付(キャンセルボタン→処理停止)
+    zoomParamStr = InputBox("デフォルト100%表示倍率", Default:=100)
+    
+    '閉じるボタン､キャンセルボタン押下時処理停止
+    If zoomParamStr = "" Then Exit Sub
+    
+    '処理高速化 画面更新処理停止
+    Application.ScreenUpdating = False
+    
+    'アラート非表示
+    Application.DisplayAlerts = False
+    
+    '数値確認(入力値バリデーションチェック)
+    If IsNumeric(zoomParamStr) Then
+        '全角数字の場合半角数値へ変換
+        zoomParamStr = StrConv(zoomParamStr, vbNarrow)
+        
+        '数値入力された場合StrからIntに変換
+        zoomParamInt = Val(zoomParamStr)
+        
+        '最小値:10%／最大値:400%の判定
+        If zoomParamInt < 10 Then
+            zoomParamInt = 10
+        End If
+        If zoomParamInt > 400 Then
+            zoomParamInt = 400
+        End If
+    Else
+        '数値以外の場合デフォルト100%(空値含む)
+        zoomParamInt = 100
+    End If
+    
+    '現在のブックのシート数分ループ
+    For Each Ws In Worksheets
+        '先頭シートから処理開始
+        Ws.Activate
+        
+        '印刷範囲設定解除
+        'ActiveSheet.PageSetup.PrintArea = "$A$1"
+        'ActiveSheet.PageSetup.PrintArea = ""
+        
+        'ページ区切りの点線を消す
+        ActiveSheet.DisplayAutomaticPageBreaks = False
+        
+        'スクロール位置初期化
+        ActiveWindow.ScrollRow = 1
+        ActiveWindow.ScrollColumn = 1
+        
+        'ズーム初期化／変更
+        ActiveWindow.Zoom = zoomParamInt
+        
+        'セル選択初期化
+        Range("A1").Select
+        
+    Next Ws
+    
+    'アラート再表示
+    Application.DisplayAlerts = True
+    
+    '処理高速化 画面更新処理停止
+    Application.ScreenUpdating = True
+    
+    '先頭のシートを表示
+    Worksheets(1).Activate
+    
+    '終了時間取得
+    endTime = Timer
+ 
+    '処理時間計算
+    processTime = endTime - startTime
+    Debug.Print "処理時間：" & processTime
+ 
+End Sub
